@@ -1,10 +1,16 @@
-# Hyperfocus: State Injection Proof-of-Concept
+# Hyperfocus: Narrative State Injection Proof-of-Concept
 
 `hyperfocus` is a minimal MCP server written to demonstrate a new technique for tuning and adjusting LLM behavior at runtime. The current implementation is written with and for Anthropic's Claude models, but should be compatible with other models *mutatis mutandi*.
 
 The server allows the model to load focus states (rich descriptions of goals and methods) or personalities (phenomenologically embodied identities) and inhabit them in the current context, changing behavior across various tasks *dramatically*.
 
 I've done my best to package this up correctly and it should be possible to run with `uv` without too much effort. The only dependency is the `mcp[cli]` package, the rest is standard library (`json`, `typing`). Full disclosure: I'm not a Python dev, I have very little clue what I'm doing with this part of the project.
+
+Once dependencies are installed, you can add the server to Claude Code with the following command:
+
+```
+claude mcp add --transport stdio hyperfocus -- /usr/bin/uv --directory /path/to/hyperfocus/ run main.py
+```
 
 ## Summary: Let the Model Change Its Mind
 Using `hyperfocus` allows an LLM to load either a focus state or a full personality into the current context. This creates a strong narrative "pull" towards behaviors and thinking modes, as defined in the specification, and heavily influences not just the *form* of subsequent outputs, but also things like task decomposition, assessment and analysis tasks, and so on.
