@@ -1,6 +1,6 @@
 # Hyperfocus: Narrative State Injection Proof-of-Concept
 
-`hyperfocus` is a minimal MCP server written to demonstrate a new technique for tuning and adjusting LLM behavior at runtime. The current implementation is written with and for Anthropic's Claude models, but should be compatible with other models *mutatis mutandi*.
+`hyperfocus` is a minimal MCP server written to demonstrate a new technique for tuning and adjusting LLM behavior at runtime. The current implementation is written with and for Anthropic's Claude models, but should be compatible with other models *mutatis mutandis*.
 
 The server allows the model to load focus states (rich descriptions of goals and methods) or personalities (phenomenologically embodied identities) and inhabit them in the current context, changing behavior across various tasks *dramatically*.
 
