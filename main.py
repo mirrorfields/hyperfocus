@@ -177,7 +177,7 @@ V3 personalities support three loading scopes:
 
 def main():
     # Run server!
-    mcp.run(transport="http", host="0.0.0.0", port="9001")
+    mcp.run(transport="http", host="0.0.0.0", port=9001)
 
 if __name__ == "__main__":
     main()
