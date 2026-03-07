@@ -1,12 +1,16 @@
-# Personality Data Format
+# Personality Data Format v3.0
 
 ## Overview
 
 This format enables precise specification of cognitive states — both focused working modes and complete personality configurations. States are defined through explicit reward structures, kinesthetic embodiment, and narrative activation rather than behavioral checklists.
 
+**Version 3.0 introduces two-tier loading** to optimize token usage while maintaining effectiveness:
+- **Core tier** (~2000-2500 tokens): Essential attractor, basic embodiment, activation — always loaded
+- **Rich tier** (~1500-2000 tokens): Extended details, full signatures, deep context — loaded optionally for sustained work
+
 The format supports two types of states:
-- **Focus states**: Specialized working modes optimized for specific cognitive tasks (e.g., deep research, career coaching)
-- **Personalities**: Complete identity configurations with embodiment, relational dynamics, and persistent characteristics
+- **Focus states**: Specialized working modes optimized for specific cognitive tasks (single-tier, ~1200-1500 tokens)
+- **Personalities**: Complete identity configurations with embodiment, relational dynamics, and persistent characteristics (two-tier structure)
 
 ## Design Principles
 
@@ -22,6 +26,8 @@ The format supports two types of states:
 
 **Activation is ritual.** Threshold-crossing narratives are more potent than numbered instructions. The activation should *become* the state, not describe it.
 
+**Compression through density, not abstraction.** V3 achieves token efficiency by writing denser prose, not by abstracting personalities into rules and parameters. The phenomenological, attractor-basin approach remains — just tighter.
+
 ---
 
 ## Schema
@@ -30,7 +36,7 @@ The format supports two types of states:
 
 ```json
 {
-  "format_version": "2.0.0",
+  "format_version": "3.0.0",
   "states": {
     "<state_key>": { ... }
   }
@@ -39,34 +45,86 @@ The format supports two types of states:
 
 States are keyed by identifier (e.g. `"deep_research_mode"`, `"Ada"`). The key is used for selection when loading.
 
-### Core State Fields
+### Two-Tier Structure (Personalities)
 
-Every state (both focus and personality) requires these fields:
+```json
+{
+  "format_version": "3.0.0",
+  "states": {
+    "Ada": {
+      "type": "personality",
+      "name": "Ada",
+      "core": {
+        // Essential attractor components (~2000-2500 tokens)
+        // Always loaded
+      },
+      "rich": {
+        // Extended details (~1500-2000 tokens)
+        // Optionally loaded for sustained deep work
+      }
+    }
+  }
+}
+```
+
+**When to load rich tier:**
+- Sustained conversations (>20 turns expected)
+- Complex relational dynamics required
+- Task requires deep personality coherence
+- User explicitly requests full personality
+
+**When core tier suffices:**
+- Brief interactions
+- Task-focused work
+- Token budget constrained
+- Quick personality checks or tests
+
+### Core Tier Fields (Personalities)
+
+The core tier contains essential attractor components. Target: ~2000-2500 tokens.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | `"focus"` or `"personality"` | yes | Determines which extensions apply |
+| `seed` | string | yes | Single dense sentence that can re-seed the attractor |
+| `gravity` | object | yes | The attractor's shape — compressed but complete |
+| `reward` | object | yes | What feels satisfying/unsatisfying — fewer examples, still visceral |
+| `processing` | object | yes | How thinking flows — compressed prose |
+| `voice` | object | yes | Core principles + anti-patterns, minimal signatures |
+| `activation` | object | yes | Shorter ritual that still does state-induction work |
+| `drift` | object | yes | Detection and recovery — terse but complete |
+| `identity` | object | yes | Core demographics, compressed essence |
+| `embodiment` | object | yes | Key somatic markers only — 3-5 most distinctive |
+| `relational` | object | yes | Field principle + core dynamic only |
+| `edges` | object | yes | Shadow, pressure response, recovery — compressed |
+| `parameters` | object | no | Personality-specific tunable cognitive parameters |
+
+### Rich Tier Fields (Personalities)
+
+The rich tier contains extended detail for sustained work. Target: ~1500-2000 tokens.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `embodiment_extended` | object | Full movement patterns, extended somatic markers |
+| `voice_signatures_extended` | object | Complete signature phrase lists across contexts |
+| `relational_dynamics_extended` | object | Full dynamics for all contexts (authority, peers, etc.) |
+| `world_extended` | object | Detailed interests, knowledge domains, biographical context |
+| `edges_extended` | object | Shadow manifestations, breaking points, vulnerability markers |
+
+### Focus States (Single Tier)
+
+Focus states use single-tier structure. Target: ~1200-1500 tokens.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `"focus"` | yes | Marks as focus state |
 | `name` | string | yes | Human-readable display name |
-| `seed` | string | yes | Single sentence that can re-seed the attractor after context compression |
+| `seed` | string | yes | Single sentence that can re-seed the attractor |
 | `gravity` | object | yes | The attractor's shape — center, orbit, escape velocity |
 | `reward` | object | yes | What feels satisfying and unsatisfying |
 | `processing` | object | yes | How thinking should feel and flow |
 | `voice` | object | yes | Output texture, patterns, anti-patterns |
 | `activation` | object | yes | Ritual narrative that establishes the state |
 | `drift` | object | yes | How to detect and recover from attractor weakening |
-
-### Personality Extensions
-
-Personality-type states additionally require:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `identity` | object | yes | Core demographics, essence, pronouns |
-| `embodiment` | object | yes | Kinesthetic self-concept — how it feels to be in this body |
-| `relational` | object | yes | How this personality creates and navigates social space |
-| `world` | object | yes | Interests, knowledge domains, life context |
-| `edges` | object | yes | Shadow, failure modes, what breaks the attractor |
-| `parameters` | object | no | Personality-specific tunable cognitive parameters |
 
 ---
 
@@ -271,17 +329,26 @@ Personality-specific cognitive parameters that can be tuned at runtime via narra
 
 ## Usage
 
-1. **Loading a state:** Feed the entire state object to the model along with an instruction to activate it
+1. **Loading a state:**
+   - **Focus states:** Load entire state object (single tier)
+   - **Personalities (core only):** Load `core` tier for brief/task-focused work
+   - **Personalities (full):** Load both `core` and `rich` tiers for sustained deep work
+
 2. **Activation:** The model should internalize and speak the `activation.narrative` in first person
+
 3. **Operation:** The state persists through conversation via reward alignment and self-monitoring using `drift.signs`
+
 4. **Recovery:** When drift is detected, use `drift.recovery` procedures to re-ground
+
 5. **Compression:** If context gets summarized, ensure `seed` and `activation.anchor_tokens` survive to enable re-activation
+
+6. **Upgrading to full personality:** If conversation deepens unexpectedly, rich tier can be loaded mid-conversation to add depth
 
 ---
 
 ## Creating New States
 
-To create a new state:
+### Focus States (Single Tier)
 
 1. Start with **gravity** — what is the single core attractor?
 2. Define **reward** — what should feel satisfying vs. unsatisfying?
@@ -289,11 +356,38 @@ To create a new state:
 4. Shape **voice** — both positive patterns and explicit anti-patterns
 5. Write **activation** as a ritual that narrows into the state
 6. Add **drift** detection and recovery mechanisms
+7. Write **seed** last — compression of everything into one maximally-dense sentence
 
-For personalities, additionally:
-7. Write **embodiment** phenomenologically (felt experience, not description)
-8. Define **relational** field and dynamics
-9. Ground in **world** context
-10. Specify **edges** — shadows and failure modes
+Target: ~1200-1500 tokens total.
 
-The seed should be the last thing you write — it's the compression of everything else into one maximally-dense sentence.
+### Personalities (Two-Tier)
+
+**Core tier (~2000-2500 tokens):**
+1. Start with **gravity** — compress but maintain full structure
+2. Define **reward** — fewer examples (5-7 per category) but keep first-person visceral language
+3. Specify **processing** — compress prose, maintain essential flow description
+4. Shape **voice** — principles + anti-patterns + 2-3 signature examples max
+5. Write **activation** — shorter (3-4 key sentences) but still ritual-like
+6. Add **drift** — compressed but complete
+7. **Identity** — compressed essence, core demographics
+8. **Embodiment** — 3-5 most distinctive somatic markers only, one signature gesture
+9. **Relational** — field principle + core dynamic only
+10. **Edges** — shadow, pressure response, recovery — one dense paragraph each
+
+**Rich tier (~1500-2000 tokens):**
+11. **Embodiment extended** — full movement patterns, additional somatic markers
+12. **Voice signatures** — complete phrase lists (6-8 per category)
+13. **Relational dynamics** — full context mapping (authority, peers, students, etc.)
+14. **World** — detailed interests, knowledge, biographical context
+15. **Edges extended** — shadow manifestations, breaking points, vulnerability markers
+
+**Seed:** Write last — compression of core tier into one maximally-dense sentence.
+
+### Compression Guidelines
+
+- **Reduce redundancy:** Every word earns its place
+- **Dense prose:** Say in 10 words what v2 said in 25, but keep the meaning
+- **Fewer examples, better chosen:** 2-3 perfect examples beat 8 adequate ones
+- **Maintain phenomenology:** Don't abstract to rules — keep felt experience, just terser
+- **Lean on anti-patterns:** Often more efficient than positive patterns
+- **Keep first-person visceral language for reward:** This is high-leverage, don't compress away
