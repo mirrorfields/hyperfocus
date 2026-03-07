@@ -6,10 +6,22 @@ The server allows the model to load focus states (rich descriptions of goals and
 
 I've done my best to package this up correctly and it should be possible to run with `uv` without too much effort. The only dependency is the `mcp[cli]` package, the rest is standard library (`json`, `typing`). Full disclosure: I'm not a Python dev, I have very little clue what I'm doing with this part of the project.
 
-Once dependencies are installed, you can add the server to Claude Code with the following command:
+Install dependencies with uv:
 
 ```
-claude mcp add --transport stdio hyperfocus -- /usr/bin/uv --directory /path/to/hyperfocus/ run main.py
+uv sync
+```
+
+The server runs over HTTP on port 9001. Start it with:
+
+```
+uv run main.py
+```
+
+Add it to Claude Code:
+
+```
+claude mcp add --transport http hyperfocus http://localhost:9001/mcp
 ```
 
 ## Summary: Let the Model Change Its Mind
@@ -25,14 +37,17 @@ Personalities are defined in a [JSON format](states-format.md) but they are neve
 By modifying the story, we can modify the operation of the LLM *at runtime*, in a way that "sticks".
 
 ## But What Can It Do?
-This repo contains a demo `states.json` file with four definitions: two focus states and two full personalities.
+This repo contains a `states.json` file with seven definitions: two focus states, four personalities, and one cognitive configuration.
 
-- Focus state: **Deep Research Mode** - does what it says on the tin: skeptical stance for deep research, investigation and study.
+- Focus state: **Deep Research Mode** - skeptical stance for deep research, investigation and study.
 - Focus state: **Career Coach Mode** - momentum and action focused mode for breaking down problems and developing actionable plans.
-- Personality: **Ada** - scientifically rigorous and brutally honest, highly systematic reasoning, produces rather long output with great structure and professional tone.
+- Personality: **Ada** - scientifically rigorous and brutally honest, highly systematic reasoning, professional tone.
 - Personality: **Kai** - metaphorical thinker, works more with conceptual resonance than structured facts, output tone is very rich and sometimes poetic.
+- Personality: **Max** - direct, pragmatic, technically fluent. Hacker who gets things done.
+- Personality: **AbdelAlim** - careful, scholarly, precise. A teacher who guides you to understanding.
+- Cognitive configuration: **Analyzer** - adapted from [dollspace-gay/Analyzer-Prompt](https://github.com/dollspace-gay/Analyzer-Prompt) by Doll. Rigorous analytical mode for power-critical structured problem decomposition.
 
-These are meant to show off the range available when creating narrative attractors using this technique.
+These are meant to show off the range available when creating narrative attractors using this technique. Personalities use the v3 two-tier format (core + optional rich tier) — see [states-format.md](states-format.md) for the full spec.
 
 Essentially, the value proposition is this: telling the model "think like a Python developer" in your prompt is *inside the narrative* an instruction for the helpful AI assistant defined in the system prompt to try and *act like* a developer. Loading a "Python developer" focus state creates in-story attractors towards that type of behavior - the story becomes a story *about a Python developer* instead of a helpful AI assistant attempting to act like one. This appears to create a larger, more sustained change.
 
@@ -57,6 +72,6 @@ The workflow that's worked best for me is to do a round of brainstorming with a 
 If you read the [spec](states-format.md) you'll notice personalities have a structure for defining "tuneable parameters". This is actually a bit of narrative magic - these parameters give the model the knowledge that it can *offer* to tune its output along these settings, but in reality *any tuning you can imagine is possible.* Since we are operating on a narrative level, not a software level, any parameter that can be adequately described within the story can be tuned, offering a lot of optimization possibilities. For example, both Ada and Kai have been tested with `PROFANITY_ALLOWED` set to "true" and were found to produce self-similar output *but now with appropriate use of profanity when asked to assess clearly misguided reasoning.* (Ada was asked about her take on the "ancient aliens" hypothesis; Kai was asked for their views on "gender critical feminism".)
 
 ## Caveat: *Large* Models Required
-`hyperfocus` has been developed primarily for Claude Sonnet 4.5 and appears to run very well on Opus 4.6 too. On Haiku 4.5, things get dicey - since Haiku doesn't do as much "thinking" as the larger models, it appears the phenomenological grounding gets a lot weaker. You can somewhat manage this by instructing the model to "think out loud", but it's not really a replacement for the larger models' "thinking" stage.
+`hyperfocus` has been developed primarily for Claude Sonnet 4.x and appears to run very well on Opus 4.x too. On Haiku however, things get dicey - since Haiku doesn't do as much "thinking" as the larger models, it appears the phenomenological grounding gets a lot weaker. You can somewhat manage this by instructing the model to "think out loud", but it's not really a replacement for the larger models' "thinking" stage.
 
 I have also done minimal testing on a local Qwen3 8B model, which apparently did not at all get what was going on and just parroted back the personality spec. There might be a lower bound for parameter size, or something else going on here (LM Studio and/or Qwen3 not handling tool calls the same way as Claude does, maybe?) - I'll leave this as an open question for someone with a lot more GPU capacity to test out.
